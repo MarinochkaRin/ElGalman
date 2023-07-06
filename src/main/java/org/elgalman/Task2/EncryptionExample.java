@@ -4,10 +4,6 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 
 
-
-import java.math.BigInteger;
-import java.security.SecureRandom;
-
 public class EncryptionExample {
     private static final SecureRandom random = new SecureRandom();
 
@@ -29,24 +25,36 @@ public class EncryptionExample {
         System.out.println("b: " + b);
 
         // Повідомлення для шифрування
-        BigInteger m = new BigInteger("123456789"); // Приклад повідомлення
+        String message = "15917362406071648803286951307997244379404379136339734634402494889278874667332345678909876543212343456787654323459876543223456789098765432123456789098765432"; // Приклад повідомлення
+        System.out.println("Original Message: " + message);
 
-        // Генерація випадкового числа k
-        BigInteger k = generateRandomNumber(p.subtract(BigInteger.ONE));
-        System.out.println("k: " + k);
+        // Розмір блоку
+        int blockSize = 32; // Розмір блоку в бітах
 
         // Шифрування повідомлення
-        BigInteger x = g.modPow(k, p);
-        BigInteger y = (b.modPow(k, p).multiply(m)).mod(p);
-
-        // Відправка шифротексту (x, y) одержувачу
-        System.out.println("x: " + x);
-        System.out.println("y: " + y);
+        StringBuilder encryptedMessage = new StringBuilder();
+        for (int i = 0; i < message.length(); i += blockSize) {
+            String block = message.substring(i, Math.min(i + blockSize, message.length()));
+            BigInteger m = new BigInteger(block);
+            BigInteger k = generateRandomNumber(p.subtract(BigInteger.ONE));
+            BigInteger x = g.modPow(k, p);
+            BigInteger y = (b.modPow(k, p).multiply(m)).mod(p);
+            encryptedMessage.append(x).append(",").append(y).append(";");
+        }
+        System.out.println("Encrypted Message: " + encryptedMessage);
 
         // Розшифрування повідомлення
-        BigInteger s = x.modPow(a, p);
-        BigInteger inverseS = s.modInverse(p);
-        BigInteger decryptedMessage = (y.multiply(inverseS)).mod(p);
+        StringBuilder decryptedMessage = new StringBuilder();
+        String[] blocks = encryptedMessage.toString().split(";");
+        for (String block : blocks) {
+            String[] parts = block.split(",");
+            BigInteger x = new BigInteger(parts[0]);
+            BigInteger y = new BigInteger(parts[1]);
+            BigInteger s = x.modPow(a, p);
+            BigInteger inverseS = s.modInverse(p);
+            BigInteger decryptedBlock = (y.multiply(inverseS)).mod(p);
+            decryptedMessage.append(decryptedBlock);
+        }
         System.out.println("Decrypted Message: " + decryptedMessage);
     }
 
